@@ -19,4 +19,3 @@ pressure = weather_data['current']['pressure_mb']
 wind_speed = weather_data['current']['wind_kph']
 wind_direction = weather_data['current']['wind_dir']
 
-print(location, condition, temperature, humidity, pressure, wind_speed, wind_direction)
