@@ -1,35 +1,29 @@
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
+from config import bot_token, weather_api_key
+from get_weather import get_weather_indicators
 
-from get_weather import temperature, city
 
-# Вместо BOT TOKEN HERE нужно вставить токен вашего бота, полученный у @BotFather
-BOT_TOKEN = '8490765852:AAFHF1R7Ifm8Wl5YxWM54iO1X1qpkeTplsM'
 
-# Создаем объекты бота и диспетчера
-bot = Bot(token=BOT_TOKEN)
+# make bot and dispatcher objects
+bot = Bot(token=bot_token)
 dp = Dispatcher()
 
 
-# Этот хэндлер будет срабатывать на команду "/start"
+# "/start" handler
 @dp.message(Command(commands="start"))
 async def process_start_command(message: Message):
-    await message.answer('Привет!\nМеня зовут Эхо-бот!\nНапиши мне что-нибудь')
+    await message.answer('Привет!\n Я буду присылать тебе прогноз погоды')
 
 
-# Этот хэндлер будет срабатывать на команду "/help"
+# "/help" handler
 @dp.message(Command(commands="help"))
 async def process_help_command(message: Message):
-    await message.answer(
-        'Напиши мне что-нибудь и в ответ '
-        'я пришлю тебе твое сообщение'
-    )
-
+    await message.answer('Я буду присылать тебе прогноз погоды')
 @dp.message(Command(commands="pogoda"))
 async def process_help_command(message: Message):
-    await message.answer(f'Температура в {city} - {temperature} C')
-
+    await message.answer(f'Температура в {get_weather_indicators('Вилейка', '8d2d07864a5d4c67a00171059250111')}')
 
 
 if __name__ == '__main__':

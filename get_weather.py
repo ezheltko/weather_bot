@@ -3,7 +3,7 @@ import requests
 # api: https://www.weatherapi.com/docs/
 
 city = 'Вилейка'
-api_key = '8d2d07864a5d4c67a00171059250111'
+
 
 
 def get_weather_indicators(town: str, key: str) -> tuple:
@@ -19,3 +19,5 @@ def get_weather_indicators(town: str, key: str) -> tuple:
     wind_speed = weather_data['current']['wind_kph']
     wind_direction = weather_data['current']['wind_dir']
     return location, condition, temperature, humidity, pressure, wind_speed, wind_direction
+
+
