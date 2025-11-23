@@ -13,8 +13,8 @@ bot = Bot(token=bot_token)
 dp = Dispatcher()
 
 # create button objects
-but_1 = KeyboardButton(text="Отправить локацию автоматически")
-but_2 = KeyboardButton(text="Ввести локацию вручную")
+but_1 = KeyboardButton(text="Отправить геолокацию", request_location=True)
+but_2 = KeyboardButton(text="Ввести город")
 
 # create keyboard object
 keyboard_1 = ReplyKeyboardMarkup(keyboard=[[but_1], [but_2]], resize_keyboard=True)
@@ -33,7 +33,7 @@ async def process_help_command(message: Message):
 
 
 # send location manually handler
-@dp.message(F.text == "Ввести локацию вручную")
+@dp.message(F.text == "Ввести город")
 async def get_location_man(message: Message):
     await message.answer('Введите название вашего населённого пункта', reply_markup=ReplyKeyboardRemove())
 
@@ -43,10 +43,16 @@ async def process_send_weather(message: Message):
     await message.answer(f'Температура в {get_weather_indicators(user_data['location'], weather_api_key)}')
 
 
-@dp.message()
-async def get_location_man(message: Message):
-    await message.answer(text=f'Ты будешь получать погоду для {message.text}')
-    user_data['location'] = message.text
+
+# send position automatically
+@dp.message(F.text == "Отправить геолокацию")
+async def process_location(message: Message):
+    await message.answer(
+        text=f'Ваши координаты: {message.location.latitude, message.location.longitude}')
+    user_data['location'] = (message.location.latitude, message.location.longitude)
+
+
+
 
 
 if __name__ == '__main__':
