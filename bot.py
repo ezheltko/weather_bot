@@ -23,7 +23,8 @@ keyboard_1 = ReplyKeyboardMarkup(keyboard=[[but_1], [but_2]], resize_keyboard=Tr
 # start handler
 @dp.message(Command(commands="start"))
 async def process_start_command(message: Message):
-    await message.answer("Привет!\n Я буду присылать тебе прогноз погоды", reply_markup=keyboard_1)
+    await message.answer("Привет!\nЯ буду присылать тебе прогноз погоды\n"
+                         "Укажи свой населенный пункт", reply_markup=keyboard_1)
 
 
 # help handler
@@ -38,21 +39,19 @@ async def get_location_man(message: Message):
     await message.answer('Введите название вашего населённого пункта', reply_markup=ReplyKeyboardRemove())
 
 
+
 @dp.message(Command(commands="pogoda"))
 async def process_send_weather(message: Message):
-    await message.answer(f'Температура в {get_weather_indicators(user_data['location'], weather_api_key)}')
+    await message.answer(f'Температура в {get_weather_indicators(user_data[message.from_user.id], weather_api_key)}')
 
 
-
-# send position automatically
-@dp.message(F.text == "Отправить геолокацию")
+# push button "отправить геолокацию"
+@dp.message(F.location)
 async def process_location(message: Message):
-    await message.answer(
-        text=f'Ваши координаты: {message.location.latitude, message.location.longitude}')
-    user_data['location'] = (message.location.latitude, message.location.longitude)
+    await message.answer(text=f'Ваши координаты: {message.location.latitude, message.location.longitude} ')
+    user_data[message.from_user.id] = f"{message.location.latitude},%20{message.location.longitude}"
 
-
-
+    print(user_data)
 
 
 if __name__ == '__main__':
