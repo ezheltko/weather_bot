@@ -60,13 +60,15 @@ async def get_city(message: Message, state: FSMContext):
 
 
 # обработчик кнопки показать погоду, зная город пользователя
-@dp.message(Command(commands="weather"), F.text == "Показать погоду", StateFilter(WeatherStates.having_city))
+@dp.message(Command(commands="weather"), StateFilter(WeatherStates.having_city))
+@dp.message(F.text == "Показать погоду", StateFilter(WeatherStates.having_city))
 async def process_send_weather(message: Message):
     await message.answer(f'Температура в {get_weather_indicators(user_data[message.from_user.id], weather_api_key)}')
 
 
 # обработчик кнопки показать погоду, НЕ зная город пользователя
-@dp.message(Command(commands="weather"), F.text == "Показать погоду", StateFilter(default_state))
+@dp.message(StateFilter(default_state), Command(commands="weather"))
+@dp.message(StateFilter(default_state), F.text == "Показать погоду")
 async def process_send_weather(message: Message):
     await message.answer('Отправте свою локацию', reply_markup=keyboard_1)
 
