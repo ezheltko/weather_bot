@@ -8,8 +8,8 @@ from config import bot_token, weather_api_key
 from get_weather import get_weather_indicators
 
 
-# состояние FMS
-class WeatherStates(StatesGroup):
+# создаю список состояний FSM
+class FSMWeatherStates(StatesGroup):
     waiting_for_city = State()
     having_city = State()
 
@@ -39,7 +39,7 @@ async def process_start_command(message: Message):
 
 
 # обработчик команды помощь
-@dp.message(Command(commands="help"), StateFilter(default_state, WeatherStates.having_city))
+@dp.message(Command(commands="help"), StateFilter(default_state, FSMWeatherStates.having_city))
 async def process_help_command(message: Message):
     await message.answer('Я буду присылать тебе прогноз погоды')
 
@@ -48,20 +48,20 @@ async def process_help_command(message: Message):
 @dp.message(F.text == "Ввести город", StateFilter(default_state))
 async def ask_city(message: Message, state: FSMContext):
     await message.answer('Введи название населённого пункта', reply_markup=ReplyKeyboardRemove())
-    await state.set_state(WeatherStates.waiting_for_city)
+    await state.set_state(FSMWeatherStates.waiting_for_city)
 
 
 # обработчик ввода города
-@dp.message(StateFilter(WeatherStates.waiting_for_city))
+@dp.message(StateFilter(FSMWeatherStates.waiting_for_city))
 async def get_city(message: Message, state: FSMContext):
     user_data[message.from_user.id] = message.text.strip()
-    await state.set_state(WeatherStates.having_city)
+    await state.set_state(FSMWeatherStates.having_city)
     await message.answer(f'Температура в {get_weather_indicators(user_data[message.from_user.id], weather_api_key)}')
 
 
 # обработчик кнопки показать погоду, зная город пользователя
-@dp.message(Command(commands="weather"), StateFilter(WeatherStates.having_city))
-@dp.message(F.text == "Показать погоду", StateFilter(WeatherStates.having_city))
+@dp.message(Command(commands="weather"), StateFilter(FSMWeatherStates.having_city))
+@dp.message(F.text == "Показать погоду", StateFilter(FSMWeatherStates.having_city))
 async def process_send_weather(message: Message):
     await message.answer(f'Температура в {get_weather_indicators(user_data[message.from_user.id], weather_api_key)}')
 
