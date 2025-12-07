@@ -1,12 +1,23 @@
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, StateFilter
-from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, BotCommand
 from aiogram.fsm.state import State, StatesGroup, default_state
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from config import bot_token, weather_api_key
 from get_weather import get_weather_indicators
+
+
+# создаю главное меню
+async def set_main_menu(bot: Bot):
+    # создаю список команд с их описанием
+    main_menu_commands = [
+        BotCommand(command='help', description='Справка по работе бота'),
+        BotCommand(command='/weather', description='Получить прогноз погоды'),
+        BotCommand(command='/change_city', description='Изменить город'),
+    ]
+    await bot.set_my_commands(main_menu_commands)
 
 
 # создаю класс, наследуясь от StatesGroup, в котором определяю список состояний FSM
@@ -28,11 +39,9 @@ dp = Dispatcher(storage=storage)
 # создаю объекты кнопок обычной клавиатуры
 geo_but = KeyboardButton(text="Отправить координаты", request_location=True)
 city_but = KeyboardButton(text="Ввести город")
-weather_but = KeyboardButton(text="Показать погоду")
 
 # создаю объекты клавиатуры
 keyboard_1 = ReplyKeyboardMarkup(keyboard=[[geo_but], [city_but]], resize_keyboard=True)
-keyboard_2 = ReplyKeyboardMarkup(keyboard=[[weather_but]])
 
 
 # обработчик команды старт
@@ -48,8 +57,29 @@ async def process_help_command(message: Message):
     await message.answer('Я буду присылать тебе прогноз погоды')
 
 
+# обработчик команды погода, зная город пользователя
+@dp.message(Command(commands="weather"), StateFilter(FSMWeatherStates.having_city))
+async def process_send_weather(message: Message):
+    await message.answer(f'{get_weather_indicators(user_data[message.from_user.id]['location'],
+                                                   weather_api_key)}')
+
+
+# обработчик команды погода, НЕ зная город пользователя
+@dp.message(StateFilter(default_state), Command(commands="weather"))
+async def process_send_weather(message: Message):
+    await message.answer('Отправьте свою локацию', reply_markup=keyboard_1)
+
+
+# обработчик команды изменить город
+@dp.message(StateFilter(default_state, FSMWeatherStates.having_city), Command(commands="change_city"))
+async def change_city(message: Message, state: FSMContext):
+    await state.clear()
+    await message.answer('Отправьте свою локацию', reply_markup=keyboard_1)
+    await state.set_state(FSMWeatherStates.waiting_for_city)
+
+
 # обработчик нажатия кнопки ввести город
-@dp.message(F.text == "Ввести город", StateFilter(default_state))
+@dp.message(F.text == "Ввести город", StateFilter(FSMWeatherStates.waiting_for_city))
 async def ask_city(message: Message, state: FSMContext):
     await message.answer('Введи название населённого пункта', reply_markup=ReplyKeyboardRemove())
     await state.set_state(FSMWeatherStates.waiting_for_city)
@@ -78,20 +108,7 @@ async def process_location(message: Message, state: FSMContext):
     print(user_data)
 
 
-# обработчик кнопки показать погоду, зная город пользователя
-@dp.message(Command(commands="weather"), StateFilter(FSMWeatherStates.having_city))
-@dp.message(F.text == "Показать погоду", StateFilter(FSMWeatherStates.having_city))
-async def process_send_weather(message: Message):
-    await message.answer(f'{get_weather_indicators(user_data[message.from_user.id]['location'],
-                                                   weather_api_key)}')
-
-
-# обработчик кнопки показать погоду, НЕ зная город пользователя
-@dp.message(StateFilter(default_state), Command(commands="weather"))
-@dp.message(StateFilter(default_state), F.text == "Показать погоду")
-async def process_send_weather(message: Message):
-    await message.answer('Отправте свою локацию', reply_markup=keyboard_1)
-
-
 if __name__ == '__main__':
+    # регистрирую функцию, которая формирует главное меню бота при запуске
+    dp.startup.register(set_main_menu)
     dp.run_polling(bot)
