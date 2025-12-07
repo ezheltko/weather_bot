@@ -1,13 +1,14 @@
 import requests
 
+
 # api: https://www.weatherapi.com/docs/
 # api example: https://api.weatherapi.com/v1/astronomy.json?key=8d2d07864a5d4c67a00171059250111&q=Вилейка&aqi=no
 
 
-def get_weather_indicators(town: str, key: str) -> tuple:
-    #  get the weather indicators
+def get_weather_indicators(town: str, key: str) -> str:
+    #  функция получает данные погоды
     url = f'http://api.weatherapi.com/v1/current.json?key={key}&q={town}&aqi=no'
-    # make request to api and get weather_data in json
+    # делаю запрос к api и преобразую данные в json
     weather_data = requests.get(url).json()
     location = weather_data['location']['name']
     condition = weather_data['current']['condition']['text']
@@ -16,4 +17,5 @@ def get_weather_indicators(town: str, key: str) -> tuple:
     pressure = weather_data['current']['pressure_mb']
     wind_speed = weather_data['current']['wind_kph']
     wind_direction = weather_data['current']['wind_dir']
-    return location, condition, temperature, humidity, pressure, wind_speed, wind_direction
+    return (f"Температура в {location}: {temperature}°C\nНа улице {condition}\nВлажность: {humidity} %\n"
+            f"Давление: {pressure} МПа\nСкорость ветра: {wind_speed} м/с \nНаправление ветра: {wind_direction}")
