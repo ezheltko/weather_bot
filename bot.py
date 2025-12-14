@@ -48,8 +48,8 @@ async def set_main_menu(bot: Bot):
 # обработчик команды START
 @dp.message(Command(commands="start"))
 async def process_start_command(message: Message, state: FSMContext):
-    await message.answer("Я буду присылать тебе прогноз погоды\n"
-                         "Укажи свой населенный пункт", reply_markup=keyboard_set_location)
+    await message.answer("Я буду присылать тебе прогноз погоды 🌦️\n"
+                         "Укажи свой населенный пункт ", reply_markup=keyboard_set_location)
     await state.set_state(FSMWeatherStates.waiting_for_city)
 
 
